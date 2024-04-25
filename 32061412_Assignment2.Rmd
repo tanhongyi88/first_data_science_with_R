@@ -1,0 +1,98 @@
+---
+title: "32061412_Assignment2"
+author: "HongYi"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    code_folding: show
+    highlight: haddock
+    theme: flatly
+    toc: yes
+    toc_float: yes
+  pdf_document:
+    toc: yes
+editor_options: 
+  markdown: 
+    wrap: sentence
+---
+
+## Libraries loading
+
+```{r}
+library(tidyverse)
+library(lubridate)
+```
+
+## Data exploration
+
+```{r}
+# read the news data
+news <- read_csv("ireland_news.csv")
+```
+
+```{r}
+head(news)
+```
+
+```{r}
+glimpse(news)
+```
+
+## Question 1
+
+What are the earliest and latest articles from Irish Independent, irrespective of headline category?
+Please also sort the data according to the column publish_date in an ascending manner and display the last 5 records of the data.
+
+### Answer
+
+```{r}
+news_df <- news %>%
+  data.frame() %>%
+  filter(news_provider == "Irish Independent") %>%
+  select(publish_date, headline_text)
+
+
+news_df <- news_df %>%
+  filter(!is.na(publish_date)) %>%
+  mutate(publish_date = dmy(publish_date)) %>%
+  arrange(publish_date)
+  
+  
+news_df
+
+tail(news_df, 5)
+```
+
+## Question 2
+
+How many unique headline_category values are there in the data file?
+Please consider variations (e.g.: capitalisation, potential inconsistencies) of the headline_category values, when counting them.
+
+How many news category articles contain either the keyword, "Ireland", "Irish", "US", or "USA" along with year digits from 2000 to 2024 in headline_text?
+For example, you need to search and count articles containing both “Ireland” and the year digits, or containing both “Irish” and the year digits, and so on.
+
+## Question 3
+
+Please display the top 10 headline categories with the largest number of articles published on Monday throughout the years.
+Then, draw a chart showing the total number of articles for the top 10 headline categories (as identified previously) for each year.
+What can you observe?
+Please discuss the chart and your findings.
+
+## Question 4
+
+Compute the total number of articles for each headline category and news provider.
+Then, use a single R function/command to display the statistical information, i.e., Min, Max, and Mean, of the total number of articles (as computed previously) for each news provider.
+Note: You can use multiple functions/commands to get the desired pre-processed data table, but when you compute and display the statistical information, you need to use a single R function/command.
+
+## Question 5
+
+Please compute the total number of articles for each headline category, news provider, and the day of the week.
+Then, compute the average number of articles for each news provider and the day of the week, based on the total number of articles computed previously.
+After that, please display the day of the week with the highest average number of articles for each provider.
+The output data should be structured in the following format.
+
+## Question 6
+
+## Question 7
+
+## Question 8
