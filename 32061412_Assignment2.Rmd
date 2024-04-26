@@ -21,6 +21,7 @@ editor_options:
 ```{r}
 library(tidyverse)
 library(lubridate)
+library(stringr)
 ```
 
 ## Data exploration
@@ -53,22 +54,21 @@ Please also sort the data according to the column publish_date in an ascending m
 
 ```{r}
 # get Irish Independent's articles only
-news_df <- news %>%
-  data.frame() %>%
+news_irish <- news %>%
   filter(news_provider == "Irish Independent") %>%
   select(publish_date, headline_text)
 
 # filter out NA date, change the data type of date, and sort asc
-news_df <- news_df %>%
+news_irish <- news_irish %>%
   filter(!is.na(publish_date)) %>%
   mutate(publish_date = dmy(publish_date)) %>%
   arrange(publish_date)
   
 # view data in ascending order
-news_df
+news_irish
 
 # display last 5 records(5 latest data)
-tail(news_df, 5)
+tail(news_irish, 5)
 ```
 
 ## Question 2
@@ -78,6 +78,51 @@ Please consider variations (e.g.: capitalisation, potential inconsistencies) of 
 
 How many news category articles contain either the keyword, "Ireland", "Irish", "US", or "USA" along with year digits from 2000 to 2024 in headline_text?
 For example, you need to search and count articles containing both “Ireland” and the year digits, or containing both “Irish” and the year digits, and so on.
+
+### Answer
+
+During data exploration, headline category separated by "\_" instead of "." is found and contains NA data.
+
+```{r}
+capital_exist <- news %>% 
+  filter(str_detect(headline_category, "[A-Z]+"))
+
+underscore_exist <- news %>%
+  filter(str_detect(headline_category, "_")) 
+
+na_exist <- news %>%
+  filter(is.na(headline_category))
+
+capital_exist
+underscore_exist
+na_exist
+```
+
+Therefore, do counting after replacing "\_" with "." , lower case them and filter out the NA headline_category.
+
+```{r}
+
+uniq_category <- news %>%
+  # transform headline_category column to lower case
+  mutate(headline_category = tolower(headline_category)) %>%
+  # replace all underscores to dots in headline_category column
+  mutate(headline_category = str_replace_all(headline_category,"_",".")) %>%
+  # get unique rows only
+  distinct(headline_category)
+
+nrow(uniq_category)
+```
+
+Filter rows that are from "news" category and contain "Ireland", "Irish", "US", or "USA" and 2000 to 2024 in headline_text
+
+```{r}
+news_categories <- news %>%
+  filter(headline_category == "news") %>%
+  filter(str_detect(headline_text, "US|USA|Irish|Ireland")) %>%
+  filter(str_detect(headline_text, "2020|2021|2022|2023|2024"))
+
+nrow(news_categories)
+```
 
 ## Question 3
 
