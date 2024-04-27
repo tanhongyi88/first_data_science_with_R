@@ -64,7 +64,7 @@ news_irish <- news_irish %>%
   mutate(publish_date = dmy(publish_date)) %>%
   arrange(publish_date)
   
-# view data in ascending order
+# view data in ascending order and view earliest records
 news_irish
 
 # display last 5 records(5 latest data)
@@ -107,6 +107,8 @@ uniq_category <- news %>%
   mutate(headline_category = tolower(headline_category)) %>%
   # replace all underscores to dots in headline_category column
   mutate(headline_category = str_replace_all(headline_category,"_",".")) %>%
+  # filter na data
+  filter(!is.na(headline_category)) %>%
   # get unique rows only
   distinct(headline_category)
 
@@ -130,6 +132,92 @@ Please display the top 10 headline categories with the largest number of article
 Then, draw a chart showing the total number of articles for the top 10 headline categories (as identified previously) for each year.
 What can you observe?
 Please discuss the chart and your findings.
+
+### Answer
+
+-   filter such that it is Monday, non-NA(like Q2),
+
+-   transform headline_category, lower case and inconsistency such as "\_" (like Q2)
+
+-   group by headline_category
+
+-   calculate count for each group
+
+-   descending order
+
+```{r}
+top_10 <- news %>%
+  # Monday only
+  filter(str_detect(publish_date, "Monday")) %>%
+  # filter NA headline category
+  filter(!is.na(headline_category)) %>%
+  # transform headline_category column to lower case
+  mutate(headline_category = tolower(headline_category)) %>%
+  # replace all underscores to dots in headline_category column
+  mutate(headline_category = str_replace_all(headline_category,"_",".")) %>%
+  # group by headline category to get the count for each group
+  group_by(headline_category) %>%
+  # display headline_category with respective count
+  summarise(count = n_distinct(headline_text, na.rm = TRUE)) %>%
+  ungroup() %>%
+  # arrange in desc order
+  arrange(desc(count)) %>%
+  head(10)
+
+top_10
+```
+
+For second part of the Question 3, additionally,
+
+-   filter such that it is from the top 10 headline_category above
+
+-   transform date to year into another column
+
+-   group by both headline_category and year
+
+```{r}
+top_10_over_years <- news %>%
+  filter(str_detect(publish_date, "Monday")) %>%
+  # filter the top 10 headline_category
+  filter(headline_category %in% top_10$headline_category) %>%
+  mutate(headline_category = tolower(headline_category)) %>%
+  mutate(headline_category = str_replace_all(headline_category,"_",".")) %>%
+  # change to Date type
+  mutate(publish_date = dmy(publish_date)) %>%
+  # get year from Date and put into 'year' column
+  mutate(year = format(publish_date, "%Y")) %>%
+  # additionally, group by year
+  group_by(headline_category, year) %>%
+  summarise(count = n_distinct(headline_text, na.rm = TRUE)) %>%
+  ungroup() %>%
+  arrange(desc(count))
+
+# show top 10 each year
+top_10_over_years
+```
+
+Plot line graph
+
+-   The x and y axis are flipped because if x-axis is 'Year', the range of the 'Year' is too large and causes the number to be overlapped and hard to see
+
+```{r}
+# plot 
+top_10_over_years %>%
+  ggplot(aes(x = year, y = count, group = headline_category, color=headline_category)) +
+  geom_line(size=1) +
+  xlab("Year") +
+  ylab("Count") +
+  labs(title="Total number of articles for the top 10 headline categories for each year", subtitle = "Articles from every headline category fall below 1000 after 2014") + 
+  coord_flip()
+```
+
+#### Findings
+
+-   News and Sport categories have a lot of articles before 2014 but fell below 1000 after 2014
+
+-   Headline categories except News And Sports always have below 1000 articles over the years
+
+-   There are two obvious lines(sport.rugby & sport.soccer) go missing before 2006 or only exist after 2006(inclusive)
 
 ## Question 4
 
