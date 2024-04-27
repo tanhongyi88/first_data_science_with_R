@@ -169,6 +169,11 @@ top_10
 
 For second part of the Question 3, additionally,
 
+-   filter such that it has date and not NA
+
+```{=html}
+<!-- -->
+```
 -   filter such that it is from the top 10 headline_category above
 
 -   transform date to year into another column
@@ -177,7 +182,8 @@ For second part of the Question 3, additionally,
 
 ```{r}
 top_10_over_years <- news %>%
-  filter(str_detect(publish_date, "Monday")) %>%
+  # filter so that date is not unavailable
+  filter(!is.na(publish_date)) %>%
   # filter the top 10 headline_category
   filter(headline_category %in% top_10$headline_category) %>%
   mutate(headline_category = tolower(headline_category)) %>%
@@ -207,17 +213,19 @@ top_10_over_years %>%
   geom_line(size=1) +
   xlab("Year") +
   ylab("Count") +
-  labs(title="Total number of articles for the top 10 headline categories for each year", subtitle = "Articles from every headline category fall below 1000 after 2014") + 
+  labs(title="Total number of articles for the top 10 headline categories for each year", subtitle = "News has much larger number of articles than other categories before 2013") + 
   coord_flip()
 ```
 
 #### Findings
 
--   News and Sport categories have a lot of articles before 2014 but fell below 1000 after 2014
+-   It can be seen as 3 levels number of articles
 
--   Headline categories except News And Sports always have below 1000 articles over the years
+    1.  News has much larger number of articles than others before 2013
+    2.  Sport and Business maintained roughly between 5000 to 10000 articles before 2010(inclusive) and before 2012(inclusive) respectively
+    3.  All the other headline categories have below 5000 articles over the years
 
--   There are two obvious lines(sport.rugby & sport.soccer) go missing before 2006 or only exist after 2006(inclusive)
+-   There are 3 obvious lines that only have articles since 1999(sport.rugby, sport.soccer) and 2008(news.law)
 
 ## Question 4
 
