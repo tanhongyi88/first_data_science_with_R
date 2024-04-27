@@ -241,7 +241,10 @@ articles_cate_prov <- news %>%
   group_by(headline_category, news_provider) %>%
   # calculate count
   summarise(count = n_distinct(headline_text, na.rm = TRUE)) %>%
-  ungroup()
+  ungroup() 
+
+# show data in desc order
+articles_cate_prov %>% arrange(desc(count))
 ```
 
 ```{r}
@@ -256,6 +259,10 @@ Please compute the total number of articles for each headline category, news pro
 Then, compute the average number of articles for each news provider and the day of the week, based on the total number of articles computed previously.
 After that, please display the day of the week with the highest average number of articles for each provider.
 The output data should be structured in the following format.
+
+```{r}
+
+```
 
 ## Question 6
 
