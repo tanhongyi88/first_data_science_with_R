@@ -260,8 +260,75 @@ Then, compute the average number of articles for each news provider and the day 
 After that, please display the day of the week with the highest average number of articles for each provider.
 The output data should be structured in the following format.
 
+### Answer
+
+-   filter out NA category, publish date and provider
+
+-   get weekday label by using wday onto date-converted(dym() function) publish_date
+
+-   for each headline category and news provider(group by), calculate count(n_distinct)
+
+    -   n_distinct is used here because same article might be published more than once
+
+-   display in descending order
+
 ```{r}
 
+articles_cate_prov_day <- news %>%
+  # filter out NA category, publish date and provider
+  filter(!is.na(headline_category) & 
+           !is.na(news_provider) & 
+           !is.na(publish_date)) %>%
+  # get weekday label by using wday onto date-converted publish_date
+  mutate(weekday = wday(dmy(publish_date), label=TRUE)) %>%
+  # for each headline category and news provider
+  group_by(headline_category, news_provider, weekday) %>%
+  # calculate count
+  summarise(count = n_distinct(headline_text, na.rm = TRUE)) %>%
+  ungroup() %>%
+  arrange(desc(count))
+  
+articles_cate_prov_day 
+```
+
+"Then, compute the average number of articles for each news provider and the day of the week, based on the total number of articles computed previously" indicates to compute average across categories for each news provider and day of the week
+
+-   group by news provider and day of the week
+
+-   sum up the count calculated in previous ques, get number of articles and calculate average using sum of count/number of articles
+
+```{r}
+articles_cate_prov_day <- articles_cate_prov_day %>%
+  group_by(news_provider, weekday) %>%
+  summarise(total_articles = sum(count, na.rm = TRUE),
+            total_categories = n(),
+            average = total_articles/total_categories) %>%
+  ungroup() %>%
+  arrange(desc(average)) %>%
+  select(news_provider, weekday, average)
+```
+
+-   use pure string to set up the column names
+
+-   group by provider
+
+-   filter out the average is not the max among the days in the week
+
+-   floor the average to get integer of the average
+
+```{r}
+articles_cate_prov_day %>%
+  group_by(news_provider) %>%
+  filter(average == max(average, na.rm=TRUE)) %>%
+  summarise("News provider"= news_provider,
+            "The day of week (with the highest
+average number of articles)" = weekday,
+           "The highest average
+number of articles"= floor(average)) %>%
+  ungroup() %>%
+  select("News provider", "The day of week (with the highest
+average number of articles)", "The highest average
+number of articles")
 ```
 
 ## Question 6
