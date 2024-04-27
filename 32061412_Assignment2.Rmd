@@ -233,6 +233,23 @@ Compute the total number of articles for each headline category and news provide
 Then, use a single R function/command to display the statistical information, i.e., Min, Max, and Mean, of the total number of articles (as computed previously) for each news provider.
 Note: You can use multiple functions/commands to get the desired pre-processed data table, but when you compute and display the statistical information, you need to use a single R function/command.
 
+```{r}
+articles_cate_prov <- news %>%
+  # filter out NA category and provider
+  filter(!is.na(headline_category) & !is.na(news_provider)) %>%
+  # for each headline category and news provider
+  group_by(headline_category, news_provider) %>%
+  # calculate count
+  summarise(count = n_distinct(headline_text, na.rm = TRUE)) %>%
+  ungroup()
+```
+
+```{r}
+# display statistical info using summary()
+articles_cate_prov <- articles_cate_prov %>% summary()
+articles_cate_prov
+```
+
 ## Question 5
 
 Please compute the total number of articles for each headline category, news provider, and the day of the week.
