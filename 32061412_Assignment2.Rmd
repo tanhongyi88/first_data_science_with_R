@@ -173,13 +173,8 @@ top_10
 For second part of the Question 3, additionally,
 
 -   filter such that it has date and not NA
-
-<!-- -->
-
 -   filter such that it is from the top 10 headline_category above
-
 -   transform date to year into another column
-
 -   group by both headline_category and year
 
 ```{r}
@@ -376,7 +371,7 @@ top10_during_periods <- add_period %>%
   ungroup() %>%
   arrange(desc(total_articles))
 
-top10_during_periods
+top10_during_periods 
 ```
 
 ```{r}
@@ -511,3 +506,41 @@ wordcloud2(df, color = "random-dark", backgroundColor = "white")
 ```
 
 ## Question 8
+
+### Answer
+
+```{r}
+irish_times_performance <- news %>%
+  filter(!is.na(publish_date)) %>%
+  mutate(date = dmy(publish_date)) %>%
+  # filter(date >= '2015-01-01' & date <= '2015-12-31') %>%
+  mutate(Year = year(date)) %>%
+  mutate(Week = week(date)) %>%
+  filter(news_provider == "Irish Times") %>%
+  group_by(Year ,Week) %>%
+  summarise(count = n_distinct(headline_text, na.rm = TRUE)) %>%
+  ungroup()
+
+head(irish_times_performance)
+```
+
+```{r}
+irish_times_performance %>%
+  ggplot(aes(x = Week, y = count, group = Year, color=(Year==2020))) +
+  geom_line() +
+  xlab("Week") +
+  ylab("Number of articles published") +
+  labs(title="Irish Times's performance from 1996 to 2021") 
+```
+
+#### Discussion
+
+-   If news provider's performance is based on number of articles within certain time frame then plotting a graph of number of articles vs specific year can be used to observe the news provider's performance in that year.
+
+-   The graph can also be used to monitor the performance of the provider company throughout the year so that downhill performance can be detected early, find out the existing problems within the company and provide corresponding solutions without further deterioration
+
+-   Not only single year can be plotted, but also from the year that the company has started operation.
+    By plotting the number of articles published across the year since the year of operation, the company can monitor whether itself has evolved and grown larger or even whether or not the company has been earning money.
+
+-   The graph above shows that taking one year of performance and compare to performances in other years.
+    From this graph, we can know that in 2020 the performance is deteriorating and almost lowest among all the other performances, corresponding actions and countermeasures can be come up with by the company directors to prevent their companies from further worsening.
