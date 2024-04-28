@@ -171,9 +171,8 @@ For second part of the Question 3, additionally,
 
 -   filter such that it has date and not NA
 
-```{=html}
 <!-- -->
-```
+
 -   filter such that it is from the top 10 headline_category above
 
 -   transform date to year into another column
@@ -248,9 +247,16 @@ articles_cate_prov %>% arrange(desc(count))
 ```
 
 ```{r}
-# display statistical info using summary()
-articles_cate_prov <- articles_cate_prov %>% summary()
-articles_cate_prov
+# display statistical info using aggregate() and pass in summary
+summary_data <- aggregate(df$count, list(df$news_provider), summary)
+# cant be displayed
+summary_data
+```
+
+```{r}
+# parse it into dataframe so it can be displayed
+summary_data <- do.call(data.frame, summary_data)
+summary_data
 ```
 
 ## Question 5
