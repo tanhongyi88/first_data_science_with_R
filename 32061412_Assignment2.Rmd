@@ -55,23 +55,36 @@ Please also sort the data according to the column publish_date in an ascending m
 
 -   arrange the data based on the publish_date in date type
 
+-   show earliest and latest using head() and tail()
+
 ```{r}
 # get Irish Independent's articles only
 news_irish <- news %>%
   filter(news_provider == "Irish Independent") %>%
-  select(publish_date, headline_text)
+  filter(!is.na(publish_date)) %>%
+  mutate(publish_date = dmy(publish_date)) %>%
+  select(publish_date, headline_text) %>%
+  arrange(publish_date)
 
-# filter out NA date, change the data type of date, and sort asc
-news_irish <- news_irish %>%
+# show earliest
+head(news_irish,1)
+
+# show latest
+tail(news_irish,1)
+```
+
+```{r}
+# filter out NA date, change the data type of date, and sort asc based on date
+sorted_news <- news %>%
   filter(!is.na(publish_date)) %>%
   mutate(publish_date = dmy(publish_date)) %>%
   arrange(publish_date)
   
-# view data in ascending order and view earliest records
-news_irish
+# view data in ascending order 
+sorted_news
 
 # display last 5 records(5 latest data)
-tail(news_irish, 5)
+tail(sorted_news, 5)
 ```
 
 ## Question 2
@@ -118,13 +131,13 @@ uniq_category <- news %>%
 nrow(uniq_category)
 ```
 
-Filter rows that are from "news" category and contain "Ireland", "Irish", "US", or "USA" and 2000 to 2024 in headline_text
+Filter rows that are from "news" category and contain "Ireland", "Irish", "US", or "USA" and 2000 to 2024 in headline_text using pure text comparison
 
 ```{r}
 news_categories <- news %>%
   filter(headline_category == "news") %>%
   filter(str_detect(headline_text, "US|USA|Irish|Ireland")) %>%
-  filter(str_detect(headline_text, "2020|2021|2022|2023|2024"))
+  filter(str_detect(headline_text, "2000|2001|2002|2003|2004|2005|2006|2007|2008|2009|2010|2011|2012|2013|2014|2015|2016|2017|2018|2019|2020|2021"))
 
 nrow(news_categories)
 ```
@@ -146,7 +159,7 @@ Please discuss the chart and your findings.
 
 -   calculate count for each group
 
--   descending order
+-   descending order based on count
 
 ```{r}
 top_10 <- news %>%
@@ -230,6 +243,12 @@ Compute the total number of articles for each headline category and news provide
 Then, use a single R function/command to display the statistical information, i.e., Min, Max, and Mean, of the total number of articles (as computed previously) for each news provider.
 Note: You can use multiple functions/commands to get the desired pre-processed data table, but when you compute and display the statistical information, you need to use a single R function/command.
 
+### Answer
+
+-   "for each headline category and news provider" indicates group by headline_category and news_provider
+
+-   calculate count for each group and put result into a new column
+
 ```{r}
 articles_cate_prov <- news %>%
   # filter out NA category and provider
@@ -243,6 +262,8 @@ articles_cate_prov <- news %>%
 # show data in desc order
 articles_cate_prov %>% arrange(desc(count))
 ```
+
+-   use aggregate() function to cast a summary() onto each news provider group
 
 ```{r}
 # display statistical info using aggregate() and pass in summary
@@ -274,7 +295,7 @@ The output data should be structured in the following format.
 
     -   n_distinct is used here because same article might be published more than once
 
--   display in descending order
+-   display in descending order based on count
 
 ```{r}
 
@@ -339,6 +360,14 @@ number of articles")
 
 ### Answer
 
+-   filter outNA publish date
+
+-   change publish date to date type so that can do comparison
+
+-   do comparison to get 2019 and 2020 data
+
+-   add Period column values by doing comparison as well
+
 ```{r}
 add_period <- news %>%
   filter(!is.na(publish_date)) %>%
@@ -355,6 +384,16 @@ add_period <- news %>%
   
 add_period %>% select(publish_date, date, Period)
 ```
+
+-   filter out NA headline_category
+
+-   filter such that only top_10 computed in Question 3 are included
+
+-   resolve inconsistencies in headline_category similar to Question 2
+
+-   "by period and headline category" indicates group by both Period and headline_category
+
+-   calculate number of articles using n_distinct()
 
 ```{r}
 top10_during_periods <- add_period %>%
@@ -374,13 +413,15 @@ top10_during_periods <- add_period %>%
 top10_during_periods 
 ```
 
+-   plot boxplot with jitter
+
 ```{r}
 top10_during_periods %>%
   ggplot(aes(x = Period, y = total_articles, group = Period)) +
   geom_jitter(alpha = 0.3) +
   geom_boxplot() +
   ylab("Number of articles") +
-  labs(title="Number of articles from the top 10 headline categories for each period") 
+  labs(title="Number of articles from the top 10 headline categories for each period")
 ```
 
 ## Question 7
@@ -391,7 +432,7 @@ Additionally, generate a word cloud.
 
 ### Answer
 
-Tokenization on every row
+-   Tokenization on every row
 
 ```{r}
 # set seed for random sample
@@ -411,7 +452,7 @@ tokenised_sample <-
 tokenised_sample[1]
 ```
 
-Create Corpus object that provides structured and efficient framework for text analysis
+-   Create Corpus object that provides structured and efficient framework for text analysis
 
 ```{r}
 one_percent_sample$doc_id <- seq(nrow(one_percent_sample))
@@ -433,7 +474,7 @@ sample_corpus <- Corpus(sample_source)
 sample_corpus
 ```
 
-Remove stop words, punctuation, numbers and spaces and case normalisation
+-   Remove stop words, punctuation, numbers and spaces and case normalisation
 
 ```{r}
 # remove stop words
@@ -452,7 +493,7 @@ sample_corpus <- tm_map(sample_corpus, stripWhitespace)
 sample_corpus <- tm_map(sample_corpus, content_transformer(tolower))
 ```
 
-Stemming
+-   Stemming
 
 ```{r}
 # perform stemming to reduce inflected and derived words to their root form
@@ -462,7 +503,7 @@ sample_stem <- tm_map(sample_corpus, stemDocument)
 # inspect(sample_stem[1])
 ```
 
-Create document-term matrix
+-   Create document-term matrix
 
 ```{r}
 #  Create a matrix which its rows are the documents and columns are the words. 
@@ -472,7 +513,7 @@ sample_dtm <- DocumentTermMatrix(sample_stem)
 inspect(sample_dtm)
 ```
 
-Plot
+-   Plot top 10 used words and their frequencies
 
 ```{r}
 # Convert the DocumentTermMatrix into a regular matrix object and calculate term frequencies
