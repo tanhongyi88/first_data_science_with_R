@@ -22,6 +22,9 @@ editor_options:
 library(tidyverse)
 library(lubridate)
 library(stringr)
+library(tm)
+library(tokenizers)
+library(wordcloud2)
 ```
 
 ## Data exploration
@@ -386,5 +389,125 @@ top10_during_periods %>%
 ```
 
 ## Question 7
+
+Please sample 1% of the data, conduct the text pre-processing for the values of the headline_text column in the sampled data, and display a portion (the first few columns and rows) of a document-term matrix generated.
+Then, draw a plot showing the top 10 most frequent words where the x-axis represents the frequency of words and the y-axis represents the words themselves.
+Additionally, generate a word cloud.
+
+### Answer
+
+Tokenization on every row
+
+```{r}
+# set seed for random sample
+set.seed(32061412)
+
+# 1% of the data
+one_percent_sample <- news %>%
+  sample_frac(0.01) 
+
+# apply tokenization for each row
+tokenised_sample <- 
+  lapply(one_percent_sample$headline_text, function(line) {
+    unlist(tokenize_words(line))
+  })
+
+# check the data
+tokenised_sample[1]
+```
+
+Create Corpus object that provides structured and efficient framework for text analysis
+
+```{r}
+one_percent_sample$doc_id <- seq(nrow(one_percent_sample))
+one_percent_sample <- one_percent_sample %>%
+  select(headline_text, doc_id)
+  
+names(one_percent_sample)[names(one_percent_sample) == 'headline_text'] <- 'text'
+one_percent_sample
+```
+
+```{r}
+# Create your DataFrameSource
+sample_source <- DataframeSource(one_percent_sample)
+
+# Create a Corpus
+sample_corpus <- Corpus(sample_source)
+
+# Check corpus
+sample_corpus
+```
+
+Remove stop words, punctuation, numbers and spaces and case normalisation
+
+```{r}
+# remove stop words
+sample_corpus <- tm_map(sample_corpus, removeWords, stopwords("en")) 
+
+# remove punctuation
+sample_corpus <- tm_map(sample_corpus, removePunctuation) 
+
+# remove all numbers
+sample_corpus <- tm_map(sample_corpus, removeNumbers)
+
+# remove redundant spaces
+sample_corpus <- tm_map(sample_corpus, stripWhitespace) 
+
+# case normalisation
+sample_corpus <- tm_map(sample_corpus, content_transformer(tolower))
+```
+
+Stemming
+
+```{r}
+# perform stemming to reduce inflected and derived words to their root form
+sample_stem <- tm_map(sample_corpus, stemDocument) 
+
+# Inspect the stemmed corpus
+# inspect(sample_stem[1])
+```
+
+Create document-term matrix
+
+```{r}
+#  Create a matrix which its rows are the documents and columns are the words. 
+sample_dtm <- DocumentTermMatrix(sample_stem)
+
+# check dtm
+inspect(sample_dtm)
+```
+
+Plot
+
+```{r}
+# Convert the DocumentTermMatrix into a regular matrix object and calculate term frequencies
+term_freq<- colSums(as.matrix(sample_dtm))
+
+# Create a dataframe
+df<- data.frame(term = names(term_freq), freq = term_freq)
+
+# Filter terms with a frequency of at least 100
+df <- df %>%
+  filter(freq>=100) %>%
+  arrange(desc(freq))
+
+# Select the top 10 frequent words
+df_plot<- df %>%
+  top_n(10, freq)
+
+# Plot word frequency
+ggplot(df_plot, aes(x = fct_reorder(term, freq), y = freq, fill = freq)) + 
+  geom_bar(stat = "identity") + 
+  xlab("Terms") + 
+  ylab("Count") + 
+  coord_flip()
+
+```
+
+Wordcloud
+
+```{r}
+wordcloud2(df, color = "random-dark", backgroundColor = "white")
+```
 
 ## Question 8
