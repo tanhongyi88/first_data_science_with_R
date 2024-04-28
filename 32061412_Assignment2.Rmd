@@ -248,7 +248,7 @@ articles_cate_prov %>% arrange(desc(count))
 
 ```{r}
 # display statistical info using aggregate() and pass in summary
-summary_data <- aggregate(df$count, list(df$news_provider), summary)
+summary_data <- aggregate(articles_cate_prov$count, list(articles_cate_prov$news_provider), summary)
 # cant be displayed
 summary_data
 ```
