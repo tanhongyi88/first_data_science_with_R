@@ -339,6 +339,52 @@ number of articles")
 
 ## Question 6
 
+### Answer
+
+```{r}
+add_period <- news %>%
+  filter(!is.na(publish_date)) %>%
+  mutate(date = dmy(publish_date)) %>%
+  filter(date >= '2019-01-01' & date <= '2020-12-31') %>%
+  mutate(Period = case_when(date >='2019-01-01'& date<='2019-03-31' ~ "Period 1",
+                            date >='2019-04-01'& date<='2019-06-30' ~ "Period 2",
+                            date >='2019-07-01'& date<='2019-09-30' ~ "Period 3",
+                            date >='2019-10-01'& date<='2019-12-31' ~ "Period 4",
+                            date >='2020-01-01'& date<='2020-03-31' ~ "Period 5",
+                            date >='2020-04-01'& date<='2020-06-30' ~ "Period 6",
+                            date >='2020-07-01'& date<='2020-09-30' ~ "Period 7",
+                            date >='2020-10-01'& date<='2020-12-31' ~ "Period 8",))
+  
+add_period %>% select(publish_date, date, Period)
+```
+
+```{r}
+top10_during_periods <- add_period %>%
+  # filter na data
+  filter(!is.na(headline_category)) %>%
+  # filter the top 10 headline_category
+  filter(headline_category %in% top_10$headline_category) %>%
+  # lowercase the headline category because inconsistencies
+  mutate(headline_category = tolower(headline_category)) %>%
+  # replace all underscores to dots in headline_category column
+  mutate(headline_category = str_replace_all(headline_category,"_",".")) %>%
+  group_by(headline_category, Period) %>%
+  summarise(total_articles = n_distinct(headline_text)) %>%
+  ungroup() %>%
+  arrange(desc(total_articles))
+
+top10_during_periods
+```
+
+```{r}
+top10_during_periods %>%
+  ggplot(aes(x = Period, y = total_articles, group = Period)) +
+  geom_jitter(alpha = 0.3) +
+  geom_boxplot() +
+  ylab("Number of articles") +
+  labs(title="Number of articles from the top 10 headline categories for each period") 
+```
+
 ## Question 7
 
 ## Question 8
